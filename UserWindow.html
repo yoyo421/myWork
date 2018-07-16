@@ -1,0 +1,273 @@
+<html ng-app="myApp">
+  <head>
+    <title>My AngularJS App</title>
+		<script src="https://www.gstatic.com/firebasejs/5.2.0/firebase.js"></script>
+		<script>
+			// Initialize Firebase
+			var config = {
+				apiKey: "AIzaSyDeNvQvJA6rOGQgA1QDqEgTcPkZKbjbTEo",
+				authDomain: "timestamps-b7da3.firebaseapp.com",
+				databaseURL: "https://timestamps-b7da3.firebaseio.com",
+				projectId: "timestamps-b7da3",
+				storageBucket: "timestamps-b7da3.appspot.com",
+				messagingSenderId: "31887028730"
+			};
+			firebase.initializeApp(config);
+		</script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular-animate.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular-sanitize.js"></script>
+		<script src="FollowUnfollow.js"></script>
+	<style>
+	
+
+		{table, tr, th, td {
+    border: 1px solid black;
+}}
+	
+		.WhiteText {
+			font: normal 14px/1 "Times New Roman", Times, serif;
+			text-indent: 7px;
+		  -o-text-overflow: clip;
+		  text-overflow: clip;
+		  color: rgb(255, 255, 255);
+		}
+		
+		.LogOutButton {
+		  display: inline-block;
+		  -webkit-box-sizing: content-box;
+		  -moz-box-sizing: content-box;
+		  box-sizing: content-box;
+		  width: 100px;
+		  height: 35px;
+		  padding: 5px 10px;
+		  float: right;
+		  border: 1px solid #018dc4;
+		  font: normal 16px/normal "Times New Roman", Times, serif;
+		  color: rgba(255,255,255,0.9);
+		  -o-text-overflow: clip;
+		  text-overflow: clip;
+		  background: rgba(234,21,21,1);
+		  -webkit-transition: all 50ms;
+		  -moz-transition: all 50ms;
+		  -o-transition: all 50ms;
+		  transition: all 50ms;
+		}
+
+		.LogOutButton:hover {
+		  background: rgba(140,12,12,1);
+		}
+
+
+		.UserButton {
+		  margin: 0 0 0 20px;
+		  display: inline-block;
+		  -webkit-box-sizing: content-box;
+		  -moz-box-sizing: content-box;
+		  box-sizing: content-box;
+		  cursor: pointer;
+		  padding: 1px 7px;
+		  border: 3px solid rgb(1,141,196);
+		  -webkit-border-radius: 3px;
+		  border-radius: 3px;
+		  font: normal 16px/normal "Times New Roman", Times, serif;
+		  color: rgba(255, 255, 255, 0.9);
+		  -o-text-overflow: clip;
+		  text-overflow: clip;
+		  background: rgb(1, 153, 217);
+		  -webkit-transition: all 50ms;
+		  -moz-transition: all 50ms;
+		  -o-transition: all 50ms;
+		  transition: all 50ms;
+		}
+
+		.Follow:active {
+		  background: rgba(1,108,150,1);
+		}
+
+		.UnFollow {
+		  background: rgb(1, 100, 170);
+		}
+		.UnFollow:active {
+		  background: red;
+		}
+	</style>
+  </head>
+  <body ng-controller="personCtrl" ng-keydown="timeOut()" onunload="Logout()">
+  <style ng-repeat="user in users">
+	.User-Info{{user.index}} {
+	  -webkit-box-sizing: content-box;
+	  -moz-box-sizing: content-box;
+	  box-sizing: content-box;
+	  width: 240px;
+	  height: 54px;
+	  padding: 1px -10px 2px 5px;
+	  overflow: hidden;
+	  border: 2px solid {{user.BorderColor[user.isFollower ? 1 : 0]}};
+	  -webkit-border-radius: 5px;
+	  border-radius: 5px;
+	  font: normal 14px/1 "Times New Roman", Times, serif;
+	  color: rgb(255, 255, 255);
+	  text-indent: 7px;
+	  -o-text-overflow: clip;
+	  text-overflow: clip;
+	  background: {{user.colorDisplay}};
+	  -webkit-transition: all 200ms;
+	  -moz-transition: all 200ms;
+	  -o-transition: all 200ms;
+	  transition: all 200ms;
+	}
+
+	.User-Info{{user.index}}:hover {
+	  border: 2px solid black;
+	  background: {{user.DarkerColor}};
+	  -webkit-transition: all 80ms;
+	  -moz-transition: all 80ms;
+	  -o-transition: all 80ms;
+	  transition: all 80ms;
+	}
+	</style>
+  <table style="width: 100%;">
+	<tr>
+		<td style="width: 33%;"></td>
+		<td style="width: 33%;">
+			<h1 align="center">Welcome {{self.nickname}} !</h1>
+		</td>
+		<td style="width: 33%;" valign="top" align="right">
+			<input align="right" type="button" class="LogOutButton" ng-click="Exit()" value="LogOut"/>
+		</td>
+	</tr>
+	<tr>
+		<td></td>
+		<td valign="top" align="center">
+			<span ng-if="self.followersNUM == 0">You don't have Followers !</span>
+			<span ng-if="self.followersNUM == 1">You have {{self.followersNUM}} Follower !</span>
+			<span ng-if="self.followersNUM > 1">You have {{self.followersNUM}} Followers !</span>
+			<br>
+			<span ng-if="self.followingNUM == 0">You don't Follow anyone !</span>
+			<span ng-if="self.followingNUM == 1">You Follow {{self.followingNUM}} user !</span>
+			<span ng-if="self.followingNUM > 1">You Follow {{self.followingNUM}} users !</span>
+		</td>
+		<td>
+		<table style="width: 100%;">
+		<td style="width: 50%;" align="left">
+			User ID: #{{self.uid}}
+		</td>
+		<td align="left">
+			<input align="right" type="text" ng-model="newNickname" placeholder="New Nickname">
+			<button ng-if="newNickname != '' && newNickname !== undefined && newNickname.length <= 17" ng-click="ConfirmNickname()">Confirm</button>
+			<span ng-if="!(newNickname != '' && newNickname !== undefined)" style="color: red;">Not Supported</span>
+			<span ng-if="newNickname.length > 17" style="color: red;">Too looooong</span>
+		</td>
+		</table>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top" align="center">
+			<input align="right" type="text" ng-model="selfColor" ng-change="checkColor()">
+			<button ng-if="goodChangedColor" style="background: {{selfColor}}" ng-click="ConfirmColor()">Confirm</button>
+			<span ng-if="!goodChangedColor" style="color: red;">Not Supported</span>
+		</td>
+	</tr>
+	<tr>
+		<td align="center">
+			<table style="width: 100%;">
+				<tr>
+					<td align="right">
+						All The Users :
+					</td>
+					<td align="right">
+						Search Users :<input align="right" type="text" ng-model="findUser" ng-change="UserFinder()" placeholder="Search For Username">
+					</td>
+				</tr>
+			</table>
+		</td>
+		<td></td>
+		<td valign="top" align="center">
+			<button ng-if="ShowFollowers == true" ng-click="Followers_ing_statechanged()">All The Followers : (Click To Change Mode)</button>
+			<button ng-if="ShowFollowers == false" ng-click="Followers_ing_statechanged()">All The Followings : (Click To Change Mode)</button>
+		</td>
+	</tr>
+	<tr>
+		<td valign="top" align="center">
+			<!--- all the users--->
+				<table ng-if="findUser == '' || findUser === undefined" ng-repeat="x in [] | range2:users.length">
+					<td ng-repeat="x2 in [] | range:2" class="User-Info{{users[x+x2].index}}">
+						<table ng-if="users.length > x+x2" style="width:100%" title="id: #{{users[x+x2].uid}}">
+							<tr>
+								<td class="WhiteText">{{users[x+x2].nickname}}</td>
+								<td align="right">
+									<div ng-if="!users[x+x2].isFollowing" class="UserButton Follow" ng-click="Follow(users[x+x2])">+ Follow</div>
+									<div ng-if="users[x+x2].isFollowing" class="UserButton UnFollow" ng-click="Follow(users[x+x2])">- UnFollow</div>
+								</td>
+							</tr>
+							<tr>
+								<td class="WhiteText">Followers : {{users[x+x2].followersNUM}}</td>
+							</tr>
+						</table>
+						<table ng-if="users.length <= x+x2" style="width: 244px; height: 56px;">
+						</table>
+					</td>
+				</table>
+				<table ng-if="!(findUser == '' || findUser === undefined)" ng-repeat="x in [] | range2:usersSearched.length">
+					<td ng-repeat="x2 in [] | range:2" class="User-Info{{usersSearched[x+x2].index}}">
+						<table ng-if="usersSearched.length > x+x2" style="width:100%" title="id: #{{usersSearched[x+x2].uid}}">
+							<tr>
+								<td class="WhiteText">{{usersSearched[x+x2].nickname}}</td>
+								<td align="right">
+									<div ng-if="!usersSearched[x+x2].isFollowing" class="UserButton Follow" ng-click="Follow(usersSearched[x+x2])">+ Follow</div>
+									<div ng-if="usersSearched[x+x2].isFollowing" class="UserButton UnFollow" ng-click="Follow(usersSearched[x+x2])">- UnFollow</div>
+								</td>
+							</tr>
+							<tr>
+								<td class="WhiteText">Followers : {{usersSearched[x+x2].followersNUM}}</td>
+							</tr>
+						</table>
+						<table ng-if="usersSearched.length <= x+x2" style="width: 244px; height: 56px;">
+						</table>
+					</td>
+				</table>
+		</td>
+		<td></td>
+		<td valign="top" align="center">
+			<!--- all the followers--->
+				<table ng-if="ShowFollowers == true" ng-repeat="x in [] | range2:usersFollowerOnly.length">
+					<td valign="top" align="center" ng-repeat="x2 in [] | range:2" class="User-Info{{usersFollowerOnly[x+x2].index}}">
+						<table ng-if="usersFollowerOnly.length > x+x2" style="width:100%" title="id: #{{usersFollowerOnly[x+x2].uid}}">
+							<tr>
+								<td class="WhiteText">{{usersFollowerOnly[x+x2].nickname}}</td>
+								<td align="right">
+									<div ng-if="!usersFollowerOnly[x+x2].isFollowing" class="UserButton Follow" ng-click="Follow(usersFollowerOnly[x+x2])">+ Follow</div>
+									<div ng-if="usersFollowerOnly[x+x2].isFollowing" class="UserButton UnFollow" ng-click="Follow(usersFollowerOnly[x+x2])">- UnFollow</div>
+								</td>
+							</tr>
+							<tr>
+								<td class="WhiteText">Followers : {{usersFollowerOnly[x+x2].followersNUM}}</td>
+							</tr>
+						</table>
+						<table ng-if="usersFollowerOnly.length <= x+x2" style="width: 244px; height: 56px;">
+						</table>
+					</td>
+				</table>
+				<table ng-if="ShowFollowers == false" ng-repeat="x in [] | range2:usersFollowingOnly.length">
+					<td valign="top" align="center" ng-repeat="x2 in [] | range:2" class="User-Info{{usersFollowingOnly[x+x2].index}}">
+						<table ng-if="usersFollowingOnly.length > x+x2" style="width:100%" title="id: #{{usersFollowingOnly[x+x2].uid}}">
+							<tr>
+								<td class="WhiteText">{{usersFollowingOnly[x+x2].nickname}}</td>
+								<td align="right">
+									<div ng-if="!usersFollowingOnly[x+x2].isFollowing" class="UserButton Follow" ng-click="Follow(usersFollowingOnly[x+x2])">+ Follow</div>
+									<div ng-if="usersFollowingOnly[x+x2].isFollowing" class="UserButton UnFollow" ng-click="Follow(usersFollowingOnly[x+x2])">- UnFollow</div>
+								</td>
+							</tr>
+							<tr>
+								<td class="WhiteText">Followers : {{usersFollowingOnly[x+x2].followersNUM}}</td>
+							</tr>
+						</table>
+						<table ng-if="usersFollowingOnly.length <= x+x2" style="width: 244px; height: 56px;">
+						</table>
+					</td>
+				</table>
+		</td>
+  </table>
+  </body>
+</html>
